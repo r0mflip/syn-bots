@@ -1,0 +1,5 @@
+.venv
+.vscode
+pip-log.txt
+*.pyc
+__pycache__
