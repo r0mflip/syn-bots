@@ -28,8 +28,9 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 420px;
-  padding: 3em 1.5em;
+  width: 100%;
+  max-width: 640px;
+  padding: 3em 2.5em;
   margin: 6em 1.5em 2em;
   background-color: #ffffff;
   border-radius: 3px;
@@ -42,6 +43,7 @@ main {
   width: 100%;
   height: 100%;
   flex-direction: column;
+  align-items: center;
 }
 
 .main__container img {
@@ -72,6 +74,8 @@ main {
   margin: 1em 0 0.5em;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 420px;
 }
 
 .main__container label span {
@@ -83,7 +87,13 @@ main {
   font: inherit;
   font-size: 0.9em;
   padding: 0.2em 0.25em;
-  border: 1px solid #dcdcdc;
+  border: 1px solid #9c9c9c;
+  border-radius: 2px;
+  font-size: 1.1em;
+}
+
+input:invalid {
+  border: red solid 3px;
 }
 
 .main__container button {
@@ -93,7 +103,40 @@ main {
   border: 1px solid #9C27B0;
   background-color: #ffffff;
   cursor: pointer;
+  border-radius: 2px;
 }
+
+
+.results {
+  width: 100%;
+}
+
+.results__progress {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.results__progress div {
+  height: 24px;
+  width: 100%;
+  margin: 0.5em 0;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.results__progress span {
+  display: flex;
+  height: 100%;
+  background-color: #1E88E5;
+}
+
+.results table {
+  width: 100%;
+  padding: 0 1em;
+}
+
 
 .links {
   color: #767676;
