@@ -1,17 +1,20 @@
 from os import path
 import pickle
+import re
 from datetime import datetime
 
 import tweepy
 
-consumer_key = "JbhkSllQEEowFT000MRpEDaWq"
-consumer_secret = "VoM097AKZtxSBnWvwP8MV39AGOuG1JArHf87wLpRF2L5CMZwF4"
-access_key = "1708179600-1jTfBFKcs3uIR4pHAAYC3y2za8051gfs0avFdRY"
-access_secret = "B3BOGQ7I45zq4OZWMg6gCFWj794Mjo0U4FrCsynq1y5i4"
+consumer_key = "jIKiVc6tRLGMXf3lzMqSWHJ9u"
+consumer_secret = "53LESyUrtO8CxmVW9tGupHdz8ac0eD5dlMKvCZOAaL8rEym9qL"
+access_key = "796229025815523328-Zzs0OrYstjcAaaoz59EVufwr2SC2yAn"
+access_secret = "9Ia0tUL7PRqF6XtogfWM1eBEHYlFVlrG5EkPvduguLGQx"
 
 import tweepy
 
 from sklearn.ensemble import RandomForestClassifier
+
+re_bot = re.compile('(\s(Created By|Made By|Bot)|(Created By|Made By|Bot)\s|\s(Created By|Made By|Bot)\s)', re.I)
 
 MODEL_DIR = 'model'
 
@@ -29,6 +32,8 @@ M_DTC_SD = pickle.load(open(path.join(MODEL_DIR, 'dt_sd.model'), 'rb'))
 M_RFC = pickle.load(open(path.join(MODEL_DIR, 'rf.model'), 'rb'))
 M_RFC_SD = pickle.load(open(path.join(MODEL_DIR, 'rf_sd.model'), 'rb'))
 
+ENSEMBLE = pickle.load(open(path.join(MODEL_DIR, 'ensemble.model'), 'rb'))
+
 SCALAR = pickle.load(open(path.join(MODEL_DIR, 'standard.scalar'), 'rb'))
 
 MODELS = [[M_SVM, M_SVM_SD], [M_GNB, M_GNB_SD], [M_DTC, M_DTC_SD], [M_RFC, M_RFC_SD]]
@@ -42,17 +47,19 @@ def get_hndle_features(hndle):
   try:
     user = api.get_user(hndle)
   except tweepy.TweepError as te:
-    return {
+    return True, ({
       'error': True,
+      'code': te.api_code,
       'hndle': hndle,
-      'reason': te.response.text or 'Tweepy error'
-    }, te.api_code
+      'reason': 'Failed to get details (Tweepy)'
+    }, te.api_code)
   except tweepy.RateLimitError:
-    return {
+    return True, ({
       'error': True,
+      'code': 500,
       'hndle': hndle,
       'reason': 'Rate limit exceeded!'
-    }, 500
+    }, 500)
 
   young_date = datetime(2019, 6, 1)
   acct_creation_time = user.created_at
@@ -80,7 +87,7 @@ def get_hndle_features(hndle):
 
   vals_sd = SCALAR.transform(vals)
 
-  return vals, vals_sd
+  return False, (vals, vals_sd, user)
 
 
 def get_all_predictions(features, features_scaled):
@@ -91,33 +98,35 @@ def get_all_predictions(features, features_scaled):
     )
   )
 
-  results_proba = list(
-    map(
-      lambda m: [m[0].predict_proba(features).tolist(), m[1].predict_proba(features_scaled).tolist()],
-      MODELS
-    )
-  )
+  proba = round(ENSEMBLE.predict_proba(features_scaled)[0][1] * 100, 2)
 
   return {
     'svc': results[0],
     'gnb': results[1],
     'dtc': results[2],
     'rfc': results[3],
-    'proba': {
-      'svc': results_proba[0],
-      'gnb': results_proba[1],
-      'dtc': results_proba[2],
-      'rfc': results_proba[3]
-    }
+    'proba': proba
   }
 
 
 def do_prediction(hndle):
-  features, features_scaled = get_hndle_features(hndle)
+  err, vals = get_hndle_features(hndle)
+
+  if err:
+    return vals
+
+  features, features_scaled, user = vals
   predictions = get_all_predictions(features, features_scaled)
 
   return {
     'error': False,
     'hndle': hndle,
-    'predictions': predictions
+    'predictions': predictions,
+    'user': {
+      'hndle': hndle,
+      'name': user.name,
+      'profile_image_url': user.profile_image_url_https,
+      'verified': True if user.verified else False,
+      'self_bot': True if re_bot.match(user.description + ' ' + user.screen_name) else False
+    }
   }

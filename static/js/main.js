@@ -1,14 +1,5 @@
 import {html, render, Component} from '/static/js/third_party/htm-preact.js';
 
-
-const getProgress = predictions => {
-  let count = 0;
-  for (let clf of ['svc', 'gnb', 'dtc', 'rfc']) {
-    count = count + predictions[clf][0] + predictions[clf][1];
-  }
-  return (count / 8 * 100).toFixed(2);
-};
-
 /**
  * Results class
  *
@@ -20,42 +11,50 @@ const Results = ({hndle, results = {}}) => {
   }
 
   if (results.error) {
-    return html`<p><b>Error:</b> ${results.reason}</p>`;
+    return html`<p><b>Error:</b> ${results.code == 50 ? `User @${results.hndle} not found.` : results.reason}</p>`;
   }
 
   const preds = results.predictions;
+  const user = results.user;
 
   if (!preds) {
     return html``;
   }
 
   const isbotlike = preds.rfc[1] == 1;
-  const meterProgress = getProgress(preds);
 
   return html`
     <div class="results">
-      <p class="results__status bot--${isbotlike}">
+      <div class="results__user">
+        <img src=${user.profile_image_url.replace('_normal.', '_400x400.')} />
+        <p>${user.name}</p>
+        <p>@${user.hndle}${user.verified ? ' ✔️' : ''}${user.self_bot ? ' - bot' : ''}</p>
+      </div>
+      <!-- <p class="results__status bot--${isbotlike}">
       ${
         isbotlike
           ? html`<b>@${hndle}</b> seems to exhibit bot like behavior`
           : html`<b>@${hndle}</b> looks clean of bot like behavior`
       }
-      </p>
+      </p> -->
 
       <div class="results__progress">
-        <p>Bot-meter progress: ${meterProgress}%</p>
+        <p>Bot meter: ${preds.proba}%</p>
         <div>
-          <span style="width: ${meterProgress}%"></span>
+          <span style="width: ${preds.proba}%"></span>
         </div>
       </div>
 
-      <table>
-        <tr><th>Model</th><th>Original</th><th>Scaled</th></tr>
-        <tr><td>SVC</td><td>${preds['svc'][0]}</td><td>${preds['svc'][1]}</td></tr>
-        <tr><td>Gaussian NB</td><td>${preds['gnb'][0]}</td><td>${preds['gnb'][1]}</td></tr>
-        <tr><td>Decission Tree</td><td>${preds['dtc'][0]}</td><td>${preds['dtc'][1]}</td></tr>
-        <tr><td>Random Forest</td><td>${preds['rfc'][0]}</td><td>${preds['rfc'][1]}</td></tr>
-      </table>
+      <details>
+        <summary>More info</summary>
+        <table>
+          <tr><th>Model</th><th>Original</th><th>Scaled</th></tr>
+          <tr><td>SVC</td><td>${preds['svc'][0]}</td><td>${preds['svc'][1]}</td></tr>
+          <tr><td>Gaussian NB</td><td>${preds['gnb'][0]}</td><td>${preds['gnb'][1]}</td></tr>
+          <tr><td>Decission Tree</td><td>${preds['dtc'][0]}</td><td>${preds['dtc'][1]}</td></tr>
+          <tr><td>Random Forest</td><td>${preds['rfc'][0]}</td><td>${preds['rfc'][1]}</td></tr>
+        </table>
+      </details>
     </div>
   `;
 }

@@ -111,6 +111,23 @@ input:invalid {
   width: 100%;
 }
 
+.results__user {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2em;
+}
+
+.results__user img {
+  width: 6rem;
+  height: 6rem;
+}
+
+.results__user :nth-child(3) {
+  margin: 0;
+  color: #888888;
+}
+
 .results__progress {
   display: flex;
   flex-direction: column;
@@ -137,6 +154,10 @@ input:invalid {
   padding: 0 1em;
 }
 
+.results table td:nth-child(2),
+.results table td:nth-child(3) {
+  text-align: center;
+}
 
 .links {
   color: #767676;
