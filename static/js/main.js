@@ -10,8 +10,10 @@ const Results = ({hndle, results = {}}) => {
     return html``;
   }
 
+  results.user.hndle = results.user.hndle.startsWith('@') ? results.user.hndle.slice(1) : results.user.hndle;
+
   if (results.error) {
-    return html`<p><b>Error:</b> ${results.code == 50 ? `User @${results.hndle} not found.` : results.reason}</p>`;
+    return html`<p><b>Error:</b> ${results.code == 50 ? `User ${results.hndle} not found.` : results.reason}</p>`;
   }
 
   const preds = results.predictions;
@@ -54,6 +56,7 @@ const Results = ({hndle, results = {}}) => {
           <tr><td>Decission Tree</td><td>${preds['dtc'][0]}</td><td>${preds['dtc'][1]}</td></tr>
           <tr><td>Random Forest</td><td>${preds['rfc'][0]}</td><td>${preds['rfc'][1]}</td></tr>
         </table>
+        <p>Get more account info on <a href="https://foller.me/?name=${results.user.hndle}" target="_blank">foller.me/${results.user.hndle}</a></p>
       </details>
     </div>
   `;
